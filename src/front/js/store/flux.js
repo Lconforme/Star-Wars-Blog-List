@@ -1,54 +1,55 @@
 const getState = ({ getStore, getActions, setStore }) => {
-	return {
-		store: {
-			message: null,
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
-		},
-		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
+  return {
+    store: {
+      characters: [],
+      planets: [],
+      starships: [],
+      favorites: [],
+    },
+    actions: {
+      // Use getActions to call a function within a fuction
 
-			getMessage: async () => {
-				try{
-					// fetching data from the backend
-					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
-					const data = await resp.json()
-					setStore({ message: data.message })
-					// don't forget to return something, that is how the async resolves
-					return data;
-				}catch(error){
-					console.log("Error loading message from backend", error)
-				}
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
+      getCharacters: () => {
+        fetch("https://swapi.dev/api/people")
+          .then((resp) => resp.json())
+          .then((info) => setStore({ characters: info.results }))
+          .catch((error) => console.log(error));
+      },
+      getPlanets: () => {
+        fetch("https://swapi.dev/api/planets")
+          .then((resp) => resp.json())
+          .then((info) => setStore({ planets: info.results }))
+          .catch((error) => console.log(error));
+      },
+      getStarships: () => {
+        fetch("https://swapi.dev/api/starships")
+          .then((resp) => resp.json())
+          .then((info) => {
+            console.log("###these are the starships", info.results);
+            setStore({ starships: info.results });
+          })
+          .catch((error) => console.log(error));
+      },
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
-			}
-		}
-	};
+      addFavorites: (item) => {
+        let myFavorites = getStore().favorites;
+        let selected = myFavorites.find((element) => element === item);
+        if (selected) {
+          myFavorites = myFavorites.filter((element) => item !== element);
+          setStore({ favorites: myFavorites });
+        } else {
+          myFavorites = [...myFavorites, item];
+          setStore({ favorites: myFavorites });
+        }
+        console.log(getStore().favorites);
+      },
+      deleteFavorites: (index) => {
+        let myFavorites = getStore().favorites;
+        myFavorites = myFavorites.filter((item, idx) => index !== idx);
+        setStore({ favorites: myFavorites });
+      },
+    },
+  };
 };
 
 export default getState;
